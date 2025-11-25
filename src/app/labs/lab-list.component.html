@@ -1,0 +1,18 @@
+<div class="labs-container">
+  <div class="header-actions">
+    <h2>Laboratorios Disponibles</h2>
+    <button routerLink="/dashboard" class="btn-back">Volver</button>
+  </div>
+
+  <div class="labs-grid">
+    <div *ngFor="let lab of labs" class="lab-card">
+      <img [src]="lab.image" [alt]="lab.name" class="lab-image">
+      <div class="lab-content">
+        <h3>{{ lab.name }}</h3>
+        <p class="address">📍 {{ lab.address }}</p>
+        <p class="specialty">🔬 {{ lab.specialty }}</p>
+        <button (click)="scheduleAppointment(lab.id)" class="btn-schedule">Agendar Cita</button>
+      </div>
+    </div>
+  </div>
+</div>

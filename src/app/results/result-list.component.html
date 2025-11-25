@@ -1,0 +1,38 @@
+<div class="results-container">
+  <div class="header-actions">
+    <h2>Mis Resultados</h2>
+    <button routerLink="/dashboard" class="btn-back">Volver</button>
+  </div>
+
+  <div class="results-table-container">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Examen</th>
+          <th>Laboratorio</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let result of results">
+          <td>{{ result.date | date:'dd/MM/yyyy' }}</td>
+          <td>{{ result.testName }}</td>
+          <td>{{ result.labName }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(result.status)">
+              {{ result.status }}
+            </span>
+          </td>
+          <td>
+            <button *ngIf="result.status === 'Completado'" (click)="downloadResult(result.id)" class="btn-download">
+              ⬇ Descargar
+            </button>
+            <span *ngIf="result.status !== 'Completado'" class="text-muted">No disponible</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

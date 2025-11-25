@@ -1,0 +1,26 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1>Bienvenido, {{ userName }}</h1>
+    <p>Panel de Control de Gestión de Laboratorios</p>
+  </header>
+
+  <div class="dashboard-grid">
+    <div class="card" routerLink="/labs">
+      <div class="card-icon">🏥</div>
+      <h3>Laboratorios</h3>
+      <p>Ver laboratorios disponibles y agendar citas.</p>
+    </div>
+
+    <div class="card" routerLink="/results">
+      <div class="card-icon">📄</div>
+      <h3>Resultados</h3>
+      <p>Consultar resultados de análisis clínicos.</p>
+    </div>
+
+    <div class="card" routerLink="/profile">
+      <div class="card-icon">👤</div>
+      <h3>Mi Perfil</h3>
+      <p>Actualizar información personal.</p>
+    </div>
+  </div>
+</div>

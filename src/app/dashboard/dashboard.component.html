@@ -1,14 +1,27 @@
+<app-navbar></app-navbar>
+
 <div class="dashboard-container">
   <header class="dashboard-header">
-    <h1>Bienvenido, {{ userName }}</h1>
+    <h1>{{getGreeting()}}, {{ currentUser?.nombre || 'Usuario' }}!</h1>
     <p>Panel de Control de Gestión de Laboratorios</p>
   </header>
+
+  <div class="dashboard-stats">
+    <div class="stat-card">
+      <div class="stat-number">{{ recentAssignments.length }}</div>
+      <div class="stat-label">Asignaciones Recientes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ currentUser?.tipoUsuario || 'N/A' }}</div>
+      <div class="stat-label">Tipo de Usuario</div>
+    </div>
+  </div>
 
   <div class="dashboard-grid">
     <div class="card" routerLink="/labs">
       <div class="card-icon">🏥</div>
       <h3>Laboratorios</h3>
-      <p>Ver laboratorios disponibles y agendar citas.</p>
+      <p>Ver laboratorios disponibles y gestionar asignaciones.</p>
     </div>
 
     <div class="card" routerLink="/results">
@@ -21,6 +34,25 @@
       <div class="card-icon">👤</div>
       <h3>Mi Perfil</h3>
       <p>Actualizar información personal.</p>
+    </div>
+  </div>
+
+  <div class="recent-assignments" *ngIf="recentAssignments.length > 0">
+    <h3>Asignaciones Recientes</h3>
+    <div class="assignments-list" *ngIf="!loading">
+      <div class="assignment-item" *ngFor="let assignment of recentAssignments">
+        <div class="assignment-info">
+          <h4>{{ assignment.tipoAnalisis.nombre }}</h4>
+          <p>Laboratorio: {{ assignment.laboratorio.nombre }}</p>
+          <p>Estado: {{ assignment.estado }}</p>
+        </div>
+        <div class="assignment-date">
+          {{ assignment.fechaHoraInicio | date:'short' }}
+        </div>
+      </div>
+    </div>
+    <div *ngIf="loading" class="loading-message">
+      Cargando asignaciones...
     </div>
   </div>
 </div>

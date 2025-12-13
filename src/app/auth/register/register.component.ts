@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -13,38 +14,26 @@ import { Router, RouterModule } from '@angular/router';
 export class RegisterComponent {
   registerForm: FormGroup;
   errorMessage: string = '';
+  loading: boolean = false;
+  successMessage: string = '';
 
-  constructor(private fb: FormBuilder, private router: Router) {
+  constructor(
+    private fb: FormBuilder, 
+    private router: Router,
+    private authService: AuthService
+  ) {
     this.registerForm = this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(3)]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      nombre: ['', [Validators.required, Validators.minLength(2)]],
+      apellido: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      role: ['patient', Validators.required], // Default role
+      tipoUsuario: ['PACIENTE', Validators.required], // Default role
       password: ['', [
         Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(20),
-        this.passwordComplexityValidator
+        Validators.minLength(6)
       ]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
-  }
-
-  // Custom validator for password complexity
-  passwordComplexityValidator(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    if (!value) return null;
-
-    const hasUpperCase = /[A-Z]/.test(value);
-    const hasLowerCase = /[a-z]/.test(value);
-    const hasNumeric = /[0-9]/.test(value);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-
-    const valid = hasUpperCase && hasLowerCase && hasNumeric && hasSpecial;
-
-    if (!valid) {
-      return { passwordComplexity: true };
-    }
-    return null;
   }
 
   // Custom validator for password matching
@@ -56,9 +45,26 @@ export class RegisterComponent {
 
   onSubmit() {
     if (this.registerForm.valid) {
-      console.log('Register data:', this.registerForm.value);
-      // Simulate successful registration
-      this.router.navigate(['/login']);
+      this.loading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
+
+      const formData = { ...this.registerForm.value };
+      delete formData.confirmPassword; // No enviar confirmPassword al backend
+
+      this.authService.register(formData).subscribe({
+        next: (response) => {
+          this.loading = false;
+          this.successMessage = 'Usuario registrado exitosamente. Puede iniciar sesión.';
+          setTimeout(() => {
+            this.router.navigate(['/auth/login']);
+          }, 2000);
+        },
+        error: (error) => {
+          this.loading = false;
+          this.errorMessage = error.error?.message || 'Error al registrar usuario. Intente nuevamente.';
+        }
+      });
     } else {
       this.errorMessage = 'Por favor, corrija los errores en el formulario.';
     }

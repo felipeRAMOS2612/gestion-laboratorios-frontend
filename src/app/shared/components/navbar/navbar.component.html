@@ -1,0 +1,55 @@
+<nav class="navbar">
+  <!-- Logo and Brand -->
+  <div class="navbar-brand">
+    <a routerLink="/" class="brand-link">
+      <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <!-- Laboratory flask icon -->
+        <path d="M35 20 L35 40 L25 70 L75 70 L65 40 L65 20 L35 20 Z" fill="#3498db"/>
+        <path d="M30 20 L70 20 L70 15 L30 15 L30 20 Z" fill="#2c3e50"/>
+        <circle cx="45" cy="50" r="3" fill="#e74c3c"/>
+        <circle cx="55" cy="45" r="2" fill="#f39c12"/>
+        <circle cx="50" cy="60" r="2.5" fill="#27ae60"/>
+        <!-- Bubbles for liquid effect -->
+        <circle cx="40" cy="55" r="1" fill="#ecf0f1" opacity="0.8"/>
+        <circle cx="60" cy="55" r="1.5" fill="#ecf0f1" opacity="0.6"/>
+        <circle cx="52" cy="48" r="0.8" fill="#ecf0f1" opacity="0.7"/>
+      </svg>
+      <span class="brand-text">Lab Manager</span>
+    </a>
+  </div>
+
+  <!-- Mobile menu button -->
+  <button class="mobile-menu-btn" (click)="toggleMenu()" aria-label="Toggle menu">
+    <span class="hamburger-line" [class.open]="isMenuOpen"></span>
+    <span class="hamburger-line" [class.open]="isMenuOpen"></span>
+    <span class="hamburger-line" [class.open]="isMenuOpen"></span>
+  </button>
+
+  <!-- Navigation Links -->
+  <div class="navbar-nav" [class.mobile-open]="isMenuOpen">
+    <ng-container *ngIf="!isLoggedIn">
+      <!-- Guest Navigation -->
+      <a routerLink="/auth/login" routerLinkActive="active" class="nav-link">Iniciar Sesión</a>
+      <a routerLink="/auth/register" routerLinkActive="active" class="nav-link">Registrarse</a>
+    </ng-container>
+    
+    <ng-container *ngIf="isLoggedIn">
+      <!-- Authenticated Navigation -->
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
+      <a routerLink="/labs" routerLinkActive="active" class="nav-link">Laboratorios</a>
+      <a routerLink="/results" routerLinkActive="active" class="nav-link">Resultados</a>
+      <a routerLink="/user/profile" routerLinkActive="active" class="nav-link">Perfil</a>
+    </ng-container>
+  </div>
+
+  <!-- User Info (Desktop only) -->
+  <div class="navbar-user" *ngIf="isLoggedIn">
+    <div class="user-info">
+      <span class="user-name">{{ user?.name }}</span>
+      <span class="user-role">{{ getRoleDisplayName() }}</span>
+    </div>
+    <button class="logout-btn" (click)="logout()">
+      Cerrar Sesión
+    </button>
+  </div>
+</nav>

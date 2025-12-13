@@ -6,11 +6,29 @@
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       
       <div class="form-group">
-        <label for="fullName">Nombre Completo</label>
-        <input type="text" id="fullName" formControlName="fullName" placeholder="Juan Pérez">
-        <div *ngIf="registerForm.get('fullName')?.invalid && registerForm.get('fullName')?.touched" class="error-message">
-          <small *ngIf="registerForm.get('fullName')?.errors?.['required']">El nombre es requerido.</small>
-          <small *ngIf="registerForm.get('fullName')?.errors?.['minlength']">Mínimo 3 caracteres.</small>
+        <label for="username">Nombre de Usuario</label>
+        <input type="text" id="username" formControlName="username" placeholder="usuario123">
+        <div *ngIf="registerForm.get('username')?.invalid && registerForm.get('username')?.touched" class="error-message">
+          <small *ngIf="registerForm.get('username')?.errors?.['required']">El nombre de usuario es requerido.</small>
+          <small *ngIf="registerForm.get('username')?.errors?.['minlength']">Mínimo 3 caracteres.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" formControlName="nombre" placeholder="Juan">
+        <div *ngIf="registerForm.get('nombre')?.invalid && registerForm.get('nombre')?.touched" class="error-message">
+          <small *ngIf="registerForm.get('nombre')?.errors?.['required']">El nombre es requerido.</small>
+          <small *ngIf="registerForm.get('nombre')?.errors?.['minlength']">Mínimo 2 caracteres.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="apellido">Apellido</label>
+        <input type="text" id="apellido" formControlName="apellido" placeholder="Pérez">
+        <div *ngIf="registerForm.get('apellido')?.invalid && registerForm.get('apellido')?.touched" class="error-message">
+          <small *ngIf="registerForm.get('apellido')?.errors?.['required']">El apellido es requerido.</small>
+          <small *ngIf="registerForm.get('apellido')?.errors?.['minlength']">Mínimo 2 caracteres.</small>
         </div>
       </div>
 
@@ -24,11 +42,10 @@
       </div>
 
       <div class="form-group">
-        <label for="role">Rol</label>
-        <select id="role" formControlName="role">
-          <option value="patient">Paciente</option>
-          <option value="technician">Técnico de Laboratorio</option>
-          <option value="admin">Administrador</option>
+        <label for="tipoUsuario">Tipo de Usuario</label>
+        <select id="tipoUsuario" formControlName="tipoUsuario">
+          <option value="PACIENTE">Paciente</option>
+          <option value="MEDICO">Médico</option>
         </select>
       </div>
 
@@ -37,11 +54,7 @@
         <input type="password" id="password" formControlName="password" placeholder="********">
         <div *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched" class="error-message">
           <small *ngIf="registerForm.get('password')?.errors?.['required']">La contraseña es requerida.</small>
-          <small *ngIf="registerForm.get('password')?.errors?.['minlength']">Mínimo 8 caracteres.</small>
-          <small *ngIf="registerForm.get('password')?.errors?.['maxlength']">Máximo 20 caracteres.</small>
-          <small *ngIf="registerForm.get('password')?.errors?.['passwordComplexity']">
-            Debe contener mayúscula, minúscula, número y carácter especial.
-          </small>
+          <small *ngIf="registerForm.get('password')?.errors?.['minlength']">Mínimo 6 caracteres.</small>
         </div>
       </div>
 
@@ -53,15 +66,22 @@
         </div>
       </div>
 
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
       <div *ngIf="errorMessage" class="global-error">
         {{ errorMessage }}
       </div>
 
-      <button type="submit" [disabled]="registerForm.invalid" class="btn-primary">Registrarse</button>
+      <button type="submit" [disabled]="registerForm.invalid || loading" class="btn-primary">
+        <span *ngIf="loading">Registrando...</span>
+        <span *ngIf="!loading">Registrarse</span>
+      </button>
     </form>
 
     <div class="auth-links">
-      <a routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
+      <a routerLink="/auth/login">¿Ya tienes cuenta? Inicia sesión</a>
     </div>
   </div>
 </div>

@@ -1,10 +1,25 @@
+<app-navbar></app-navbar>
+
 <div class="results-container">
   <div class="header-actions">
-    <h2>Mis Resultados</h2>
-    <button routerLink="/dashboard" class="btn-back">Volver</button>
+    <h2>Mis Asignaciones y Resultados</h2>
+    <button routerLink="/dashboard" class="btn-back">Volver al Dashboard</button>
   </div>
 
-  <div class="results-table-container">
+  <div *ngIf="loading" class="loading-message">
+    <p>Cargando asignaciones...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!loading && asignaciones.length === 0" class="no-results">
+    <p>No tienes asignaciones registradas.</p>
+    <button routerLink="/labs" class="btn-primary">Crear Primera Asignación</button>
+  </div>
+
+  <div class="results-table-container" *ngIf="!loading && asignaciones.length > 0">
     <table class="results-table">
       <thead>
         <tr>
@@ -12,24 +27,32 @@
           <th>Examen</th>
           <th>Laboratorio</th>
           <th>Estado</th>
+          <th>Precio</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let result of results">
-          <td>{{ result.date | date:'dd/MM/yyyy' }}</td>
-          <td>{{ result.testName }}</td>
-          <td>{{ result.labName }}</td>
+        <tr *ngFor="let asignacion of asignaciones">
+          <td>{{ asignacion.fechaHoraInicio | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>{{ asignacion.tipoAnalisis.nombre }}</td>
+          <td>{{ asignacion.laboratorio.nombre }}</td>
           <td>
-            <span class="status-badge" [ngClass]="getStatusClass(result.status)">
-              {{ result.status }}
+            <span class="status-badge" [ngClass]="getStatusClass(asignacion.estado)">
+              {{ getStatusLabel(asignacion.estado) }}
             </span>
           </td>
+          <td>${{ asignacion.tipoAnalisis.precio }}</td>
           <td>
-            <button *ngIf="result.status === 'Completado'" (click)="downloadResult(result.id)" class="btn-download">
-              ⬇ Descargar
+            <button 
+              *ngIf="canDownload(asignacion)" 
+              (click)="downloadResult(asignacion)" 
+              class="btn-download"
+            >
+              ⬇ Descargar PDF
             </button>
-            <span *ngIf="result.status !== 'Completado'" class="text-muted">No disponible</span>
+            <span *ngIf="!canDownload(asignacion)" class="text-muted">
+              {{ asignacion.estado === 'PROGRAMADA' ? 'Pendiente' : 'No disponible' }}
+            </span>
           </td>
         </tr>
       </tbody>

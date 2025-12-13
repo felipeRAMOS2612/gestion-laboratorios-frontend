@@ -3,7 +3,8 @@
   justify-content: center;
   padding: 2rem;
   background-color: #f0f4f8;
-  min-height: calc(100vh - 60px); /* Adjust based on navbar height */
+  min-height: calc(100vh - 80px);
+  margin-top: 80px; /* Account for navbar */
 }
 
 .profile-card {

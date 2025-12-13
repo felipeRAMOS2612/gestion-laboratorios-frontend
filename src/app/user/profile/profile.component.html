@@ -1,3 +1,5 @@
+<app-navbar></app-navbar>
+
 <div class="profile-container">
   <div class="profile-card">
     <h2>Mi Perfil</h2>
@@ -6,39 +8,105 @@
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
       
       <div class="form-group">
-        <label for="fullName">Nombre Completo</label>
-        <input type="text" id="fullName" formControlName="fullName">
-        <div *ngIf="profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched" class="error-message">
-          <small *ngIf="profileForm.get('fullName')?.errors?.['required']">El nombre es requerido.</small>
-          <small *ngIf="profileForm.get('fullName')?.errors?.['minlength']">Mínimo 3 caracteres.</small>
+        <label for="nombre">Nombre Completo</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          formControlName="nombre"
+          [class.error]="isFieldInvalid('nombre')"
+        >
+        <div *ngIf="isFieldInvalid('nombre')" class="error-message">
+          {{ getFieldError('nombre') }}
         </div>
       </div>
 
       <div class="form-group">
-        <label for="email">Correo Electrónico (No editable)</label>
-        <input type="email" id="email" formControlName="email" class="disabled-input">
-      </div>
-
-      <div class="form-group">
-        <label for="phone">Teléfono</label>
-        <input type="tel" id="phone" formControlName="phone" placeholder="987654321">
-        <div *ngIf="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched" class="error-message">
-          <small *ngIf="profileForm.get('phone')?.errors?.['pattern']">Debe ser un número de 9 dígitos.</small>
+        <label for="email">Correo Electrónico</label>
+        <input 
+          type="email" 
+          id="email" 
+          formControlName="email"
+          [class.error]="isFieldInvalid('email')"
+        >
+        <div *ngIf="isFieldInvalid('email')" class="error-message">
+          {{ getFieldError('email') }}
         </div>
       </div>
 
       <div class="form-group">
-        <label for="address">Dirección</label>
-        <input type="text" id="address" formControlName="address" placeholder="Tu dirección">
+        <label for="telefono">Teléfono</label>
+        <input 
+          type="tel" 
+          id="telefono" 
+          formControlName="telefono" 
+          placeholder="987654321"
+          [class.error]="isFieldInvalid('telefono')"
+        >
+        <div *ngIf="isFieldInvalid('telefono')" class="error-message">
+          {{ getFieldError('telefono') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="direccion">Dirección</label>
+        <input 
+          type="text" 
+          id="direccion" 
+          formControlName="direccion" 
+          placeholder="Tu dirección"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="tipoDocumento">Tipo de Documento</label>
+        <select 
+          id="tipoDocumento" 
+          formControlName="tipoDocumento"
+          [class.error]="isFieldInvalid('tipoDocumento')"
+        >
+          <option value="">Selecciona tipo de documento</option>
+          <option value="CEDULA">Cédula de Identidad</option>
+          <option value="PASAPORTE">Pasaporte</option>
+          <option value="RUT">RUT</option>
+        </select>
+        <div *ngIf="isFieldInvalid('tipoDocumento')" class="error-message">
+          {{ getFieldError('tipoDocumento') }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="numeroDocumento">Número de Documento</label>
+        <input 
+          type="text" 
+          id="numeroDocumento" 
+          formControlName="numeroDocumento"
+          placeholder="Número de documento"
+          [class.error]="isFieldInvalid('numeroDocumento')"
+        >
+        <div *ngIf="isFieldInvalid('numeroDocumento')" class="error-message">
+          {{ getFieldError('numeroDocumento') }}
+        </div>
       </div>
 
       <div *ngIf="successMessage" class="global-success">
         {{ successMessage }}
       </div>
 
+      <div *ngIf="errorMessage" class="global-error">
+        {{ errorMessage }}
+      </div>
+
       <div class="button-group">
-        <button type="submit" [disabled]="profileForm.invalid" class="btn-primary">Guardar Cambios</button>
-        <button type="button" routerLink="/dashboard" class="btn-secondary">Cancelar</button>
+        <button 
+          type="submit" 
+          [disabled]="profileForm.invalid || loading" 
+          class="btn-primary"
+        >
+          {{ loading ? 'Guardando...' : 'Guardar Cambios' }}
+        </button>
+        <button type="button" routerLink="/dashboard" class="btn-secondary">
+          Cancelar
+        </button>
       </div>
     </form>
   </div>

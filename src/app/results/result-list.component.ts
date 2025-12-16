@@ -1,26 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LaboratorioService } from '../shared/services/laboratorio.service';
 import { AuthService } from '../shared/services/auth.service';
 import { Asignacion } from '../shared/models/laboratorio.model';
-import { NavbarComponent } from '../shared/components/navbar/navbar.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-result-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './result-list.component.html',
   styleUrl: './result-list.component.css'
 })
 export class ResultListComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   asignaciones: Asignacion[] = [];
   loading = false;
   errorMessage = '';
 
   constructor(
     private laboratorioService: LaboratorioService,
-    private authService: AuthService
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -31,20 +34,24 @@ export class ResultListComponent implements OnInit {
     const currentUser = this.authService.getCurrentUser();
     if (!currentUser) {
       this.errorMessage = 'Usuario no autenticado';
+      this.cdr.detectChanges();
       return;
     }
 
     this.loading = true;
-    this.laboratorioService.getAsignacionesByUsuario(currentUser.id!).subscribe({
+    this.cdr.detectChanges();
+    this.laboratorioService.getAsignacionesByUsuario(currentUser.id!).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (asignaciones) => {
         this.asignaciones = asignaciones.sort((a, b) => 
           new Date(b.fechaHoraInicio).getTime() - new Date(a.fechaHoraInicio).getTime()
         );
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.errorMessage = 'Error al cargar las asignaciones';
         this.loading = false;
+        this.cdr.detectChanges();
         console.error('Error loading assignments:', error);
       }
     });

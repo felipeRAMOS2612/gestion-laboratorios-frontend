@@ -4,12 +4,11 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
 import { Usuario } from '../../shared/models/usuario.model';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.css'
 })

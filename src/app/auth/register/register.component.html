@@ -1,7 +1,9 @@
 <div class="auth-container">
   <div class="auth-card">
-    <h2>Registro de Usuario</h2>
-    <p class="subtitle">Únete a nuestra plataforma</p>
+    <h2 *ngIf="!adminMode">Registro de Usuario</h2>
+    <h2 *ngIf="adminMode">Crear Médico (ADMIN)</h2>
+    <p class="subtitle" *ngIf="!adminMode">Únete a nuestra plataforma</p>
+    <p class="subtitle" *ngIf="adminMode">Crea un médico y asígnale laboratorios</p>
     
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       
@@ -41,12 +43,24 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="tipoUsuario">Tipo de Usuario</label>
-        <select id="tipoUsuario" formControlName="tipoUsuario">
-          <option value="PACIENTE">Paciente</option>
-          <option value="MEDICO">Médico</option>
-        </select>
+      <div *ngIf="adminMode" class="form-group">
+        <label>Laboratorios a asignar</label>
+        <div *ngIf="loadingLaboratorios" class="hint">Cargando laboratorios...</div>
+
+        <div *ngIf="!loadingLaboratorios && laboratorios.length === 0" class="hint">
+          No hay laboratorios para asignar.
+        </div>
+
+        <div *ngIf="!loadingLaboratorios && laboratorios.length > 0" class="checkbox-list">
+          <label class="checkbox-item" *ngFor="let lab of laboratorios">
+            <input
+              type="checkbox"
+              [checked]="selectedLaboratorioIds.has(lab.id)"
+              (change)="toggleLaboratorio(lab.id, $any($event.target).checked)"
+            />
+            <span>{{ lab.nombre }} <small *ngIf="lab.ubicacion">({{ lab.ubicacion }})</small></span>
+          </label>
+        </div>
       </div>
 
       <div class="form-group">
@@ -76,12 +90,13 @@
 
       <button type="submit" [disabled]="registerForm.invalid || loading" class="btn-primary">
         <span *ngIf="loading">Registrando...</span>
-        <span *ngIf="!loading">Registrarse</span>
+        <span *ngIf="!loading && !adminMode">Registrarse</span>
+        <span *ngIf="!loading && adminMode">Crear médico</span>
       </button>
     </form>
 
     <div class="auth-links">
-      <a routerLink="/auth/login">¿Ya tienes cuenta? Inicia sesión</a>
+      <a *ngIf="!adminMode" routerLink="/auth/login">¿Ya tienes cuenta? Inicia sesión</a>
     </div>
   </div>
 </div>

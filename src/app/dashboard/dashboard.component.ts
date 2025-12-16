@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../shared/services/auth.service';
 import { LaboratorioService } from '../shared/services/laboratorio.service';
-import { NavbarComponent } from '../shared/components/navbar/navbar.component';
 import { Usuario } from '../shared/models/usuario.model';
 import { Asignacion } from '../shared/models/laboratorio.model';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })

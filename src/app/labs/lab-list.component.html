@@ -1,38 +1,39 @@
-<app-navbar></app-navbar>
-
 <div class="labs-container">
   <div class="header-actions">
     <h2>Laboratorios Disponibles</h2>
-    <button routerLink="/dashboard" class="btn-back">Volver al Dashboard</button>
+    <div class="header-buttons">
+      <button *ngIf="isAdmin()" routerLink="/admin/laboratorios/nuevo" class="btn-primary">Crear laboratorio</button>
+      <button routerLink="/dashboard" class="btn-back">Volver al Dashboard</button>
+    </div>
   </div>
 
-  <div *ngIf="loading && laboratorios.length === 0" class="loading-message">
+  <div *ngIf="loadingLabs && laboratorios.length === 0" class="loading-message">
     <p>Cargando laboratorios...</p>
   </div>
 
-  <div *ngIf="errorMessage" class="error-message">
-    <p>{{ errorMessage }}</p>
+  <div *ngIf="pageErrorMessage" class="error-message">
+    <p>{{ pageErrorMessage }}</p>
   </div>
 
-  <div class="labs-grid" *ngIf="!loading || laboratorios.length > 0">
+  <div class="labs-grid" *ngIf="!loadingLabs || laboratorios.length > 0">
     <div *ngFor="let laboratorio of laboratorios" class="lab-card">
       <div class="lab-content">
         <h3>{{ laboratorio.nombre }}</h3>
-        <p class="address">📍 {{ laboratorio.direccion }}</p>
+        <p class="address">📍 {{ laboratorio.ubicacion || laboratorio.direccion || 'Sin ubicación' }}</p>
         <p class="specialty">🔬 {{ laboratorio.especialidad || 'Análisis General' }}</p>
-        <p class="capacity">👥 Capacidad: {{ laboratorio.capacidad }}</p>
-        <div class="status-badge" [ngClass]="laboratorio.activo ? 'active' : 'inactive'">
-          {{ laboratorio.activo ? 'Activo' : 'Inactivo' }}
+        <p class="capacity">👥 Capacidad: {{ getCapacidadLabel(laboratorio) }}</p>
+        <div class="status-badge" [ngClass]="isLaboratorioDisponible(laboratorio) ? 'active' : 'inactive'">
+          {{ isLaboratorioDisponible(laboratorio) ? 'Disponible' : 'No disponible' }}
         </div>
         <button 
-          *ngIf="laboratorio.activo"
+          *ngIf="isLaboratorioDisponible(laboratorio)"
           (click)="openAssignmentModal(laboratorio)" 
           class="btn-schedule"
         >
           Crear Asignación
         </button>
         <button 
-          *ngIf="!laboratorio.activo"
+          *ngIf="!isLaboratorioDisponible(laboratorio)"
           disabled 
           class="btn-schedule disabled"
         >
@@ -63,7 +64,7 @@
               *ngFor="let tipo of tiposAnalisis" 
               [value]="tipo.id"
             >
-              {{ tipo.nombre }} - ${{ tipo.precio }}
+              {{ tipo.nombre }} - ${{ tipo.precio ?? tipo.costo ?? 0 }}
             </option>
           </select>
         </div>
@@ -88,21 +89,21 @@
           ></textarea>
         </div>
 
-        <div *ngIf="successMessage" class="success-message">
-          {{ successMessage }}
+        <div *ngIf="assignmentSuccessMessage" class="success-message">
+          {{ assignmentSuccessMessage }}
         </div>
 
-        <div *ngIf="errorMessage" class="error-message">
-          {{ errorMessage }}
+        <div *ngIf="assignmentErrorMessage" class="error-message">
+          {{ assignmentErrorMessage }}
         </div>
 
         <div class="modal-actions">
           <button 
             type="submit" 
-            [disabled]="assignmentForm.invalid || loading" 
+            [disabled]="assignmentForm.invalid || loadingAssignment" 
             class="btn-primary"
           >
-            {{ loading ? 'Creando...' : 'Crear Asignación' }}
+            {{ loadingAssignment ? 'Creando...' : 'Crear Asignación' }}
           </button>
           <button type="button" (click)="closeAssignmentModal()" class="btn-secondary">
             Cancelar

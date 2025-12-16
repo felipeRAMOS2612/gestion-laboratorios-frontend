@@ -8,6 +8,8 @@ export interface Laboratorio {
   capacidad?: number;
   estado?: 'DISPONIBLE' | 'OCUPADO' | 'MANTENIMIENTO' | 'FUERA_DE_SERVICIO';
   activo?: boolean;
+  disponible?: boolean;
+  asignacionesActivas?: number;
   especialidad?: string;
   equipamiento?: string;
   fechaCreacion?: string;

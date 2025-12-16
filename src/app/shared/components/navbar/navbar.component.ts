@@ -1,7 +1,9 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { Usuario } from '../../models/usuario.model';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -12,28 +14,24 @@ import { CommonModule } from '@angular/common';
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
-  user: any = null;
+  user: Usuario | null = null;
   isMenuOpen = false;
   private authSubscription: Subscription | null = null;
 
   constructor(
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
-    // Subscribe to authentication changes
-    // this.authSubscription = this.authService.currentUser.subscribe(user => {
-    //   this.user = user;
-    //   this.isLoggedIn = !!user;
-    // });
-    
-    // Temporary mock data for demonstration
-    this.isLoggedIn = true;
-    this.user = {
-      name: 'Usuario Demo',
-      email: 'usuario@lab.com',
-      role: 'Administrador'
-    };
+    this.authSubscription = this.authService.currentUser$.subscribe((user: Usuario | null) => {
+      this.user = user;
+      this.isLoggedIn = !!user;
+
+      if (!this.isLoggedIn) {
+        this.isMenuOpen = false;
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -43,29 +41,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleMenu(): void {
+    if (!this.isLoggedIn) return;
     this.isMenuOpen = !this.isMenuOpen;
   }
 
-  getUserInitials(): string {
-    if (!this.user?.name) return 'U';
-    const names = this.user.name.split(' ');
-    return names.length > 1 
-      ? names[0][0] + names[1][0] 
-      : names[0][0];
+  getUserDisplayName(): string {
+    if (!this.user) return '';
+    return `${this.user.nombre ?? ''} ${this.user.apellido ?? ''}`.trim();
   }
 
   getRoleDisplayName(): string {
-    const roleMap: { [key: string]: string } = {
-      'admin': 'Administrador',
-      'student': 'Estudiante',
-      'teacher': 'Docente',
-      'technician': 'Técnico'
+    if (!this.user?.tipoUsuario) return 'Usuario';
+    const roleMap: Record<Usuario['tipoUsuario'], string> = {
+      ADMIN: 'Admin',
+      MEDICO: 'Médico',
+      PACIENTE: 'Paciente'
     };
-    return roleMap[this.user?.role] || this.user?.role || 'Usuario';
+    return roleMap[this.user.tipoUsuario] ?? 'Usuario';
   }
 
   logout(): void {
-    // this.authService.logout();
+    this.authService.logout();
+    this.isMenuOpen = false;
     this.router.navigate(['/auth/login']);
   }
 }

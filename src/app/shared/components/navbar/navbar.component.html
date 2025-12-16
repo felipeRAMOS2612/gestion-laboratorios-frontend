@@ -19,33 +19,36 @@
   </div>
 
   <!-- Mobile menu button -->
-  <button class="mobile-menu-btn" (click)="toggleMenu()" aria-label="Toggle menu">
-    <span class="hamburger-line" [class.open]="isMenuOpen"></span>
-    <span class="hamburger-line" [class.open]="isMenuOpen"></span>
-    <span class="hamburger-line" [class.open]="isMenuOpen"></span>
-  </button>
+    <ng-container *ngIf="isLoggedIn">
+      <button class="mobile-menu-btn" (click)="toggleMenu()" aria-label="Toggle menu">
+        <span class="hamburger-line" [class.open]="isMenuOpen"></span>
+        <span class="hamburger-line" [class.open]="isMenuOpen"></span>
+        <span class="hamburger-line" [class.open]="isMenuOpen"></span>
+      </button>
+    </ng-container>
 
   <!-- Navigation Links -->
-  <div class="navbar-nav" [class.mobile-open]="isMenuOpen">
+    <div class="navbar-nav" [class.mobile-open]="isMenuOpen" [class.guest]="!isLoggedIn">
     <ng-container *ngIf="!isLoggedIn">
       <!-- Guest Navigation -->
-      <a routerLink="/auth/login" routerLinkActive="active" class="nav-link">Iniciar Sesión</a>
-      <a routerLink="/auth/register" routerLinkActive="active" class="nav-link">Registrarse</a>
+        <a routerLink="/auth/login" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Iniciar Sesión</a>
     </ng-container>
     
     <ng-container *ngIf="isLoggedIn">
       <!-- Authenticated Navigation -->
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
-      <a routerLink="/labs" routerLinkActive="active" class="nav-link">Laboratorios</a>
-      <a routerLink="/results" routerLinkActive="active" class="nav-link">Resultados</a>
-      <a routerLink="/user/profile" routerLinkActive="active" class="nav-link">Perfil</a>
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Dashboard</a>
+      <a routerLink="/labs" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Laboratorios</a>
+      <a routerLink="/results" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Resultados</a>
+      <a routerLink="/profile" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Perfil</a>
+      <a *ngIf="user?.tipoUsuario === 'ADMIN'" routerLink="/admin/medicos/nuevo" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Crear Médico</a>
+      <a *ngIf="user?.tipoUsuario === 'ADMIN'" routerLink="/admin/tipos-analisis/nuevo" routerLinkActive="active" class="nav-link" (click)="isMenuOpen = false">Crear Tipo de Análisis</a>
     </ng-container>
   </div>
 
   <!-- User Info (Desktop only) -->
-  <div class="navbar-user" *ngIf="isLoggedIn">
+  <div class="navbar-user" *ngIf="isLoggedIn && user">
     <div class="user-info">
-      <span class="user-name">{{ user?.name }}</span>
+      <span class="user-name">{{ getUserDisplayName() }}</span>
       <span class="user-role">{{ getRoleDisplayName() }}</span>
     </div>
     <button class="logout-btn" (click)="logout()">

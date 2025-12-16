@@ -39,6 +39,10 @@ export class AuthService {
     return this.http.post<Usuario>(`${this.API_URL}/register`, userData);
   }
 
+  createMedicoByAdmin(userData: RegisterRequest): Observable<Usuario> {
+    return this.http.post<Usuario>(`${this.API_URL}/admin/medicos`, userData);
+  }
+
   recoverPassword(email: RecoverPasswordRequest): Observable<{mensaje: string; token?: string}> {
     return this.http.post<{mensaje: string; token?: string}>(`${this.API_URL}/recover-password`, email);
   }
@@ -60,6 +64,9 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return !!this.getCurrentUser();
+    }
     return !!localStorage.getItem('token') && !!this.getCurrentUser();
   }
 
@@ -75,7 +82,9 @@ export class AuthService {
   }
 
   updateCurrentUser(user: Usuario): void {
-    localStorage.setItem('currentUser', JSON.stringify(user));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    }
     this.currentUserSubject.next(user);
   }
 
@@ -87,5 +96,10 @@ export class AuthService {
   isPaciente(): boolean {
     const user = this.getCurrentUser();
     return user?.tipoUsuario === 'PACIENTE';
+  }
+
+  isAdmin(): boolean {
+    const user = this.getCurrentUser();
+    return user?.tipoUsuario === 'ADMIN';
   }
 }

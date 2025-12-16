@@ -1,0 +1,77 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Crear Laboratorio (ADMIN)</h2>
+    <p class="subtitle">Crea un laboratorio en el sistema</p>
+
+    <form [formGroup]="laboratorioForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" type="text" formControlName="nombre" placeholder="Laboratorio Central" />
+        <div *ngIf="laboratorioForm.get('nombre')?.invalid && laboratorioForm.get('nombre')?.touched" class="error-message">
+          <small *ngIf="laboratorioForm.get('nombre')?.errors?.['required']">El nombre es obligatorio.</small>
+          <small *ngIf="laboratorioForm.get('nombre')?.errors?.['maxlength']">Máximo 100 caracteres.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="ubicacion">Ubicación</label>
+        <input id="ubicacion" type="text" formControlName="ubicacion" placeholder="Edificio A, Piso 2" />
+        <div *ngIf="laboratorioForm.get('ubicacion')?.invalid && laboratorioForm.get('ubicacion')?.touched" class="error-message">
+          <small *ngIf="laboratorioForm.get('ubicacion')?.errors?.['required']">La ubicación es obligatoria.</small>
+          <small *ngIf="laboratorioForm.get('ubicacion')?.errors?.['maxlength']">Máximo 200 caracteres.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="descripcion">Descripción (opcional)</label>
+        <input id="descripcion" type="text" formControlName="descripcion" placeholder="Laboratorio para análisis clínicos" />
+        <div *ngIf="laboratorioForm.get('descripcion')?.invalid && laboratorioForm.get('descripcion')?.touched" class="error-message">
+          <small *ngIf="laboratorioForm.get('descripcion')?.errors?.['maxlength']">Máximo 500 caracteres.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="equipamiento">Equipamiento (opcional)</label>
+        <input id="equipamiento" type="text" formControlName="equipamiento" placeholder="Centrífuga, Microscopio" />
+        <div *ngIf="laboratorioForm.get('equipamiento')?.invalid && laboratorioForm.get('equipamiento')?.touched" class="error-message">
+          <small *ngIf="laboratorioForm.get('equipamiento')?.errors?.['maxlength']">Máximo 200 caracteres.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="capacidadMaxima">Capacidad Máxima (opcional)</label>
+        <input id="capacidadMaxima" type="number" formControlName="capacidadMaxima" min="1" placeholder="10" />
+        <div *ngIf="laboratorioForm.get('capacidadMaxima')?.invalid && laboratorioForm.get('capacidadMaxima')?.touched" class="error-message">
+          <small *ngIf="laboratorioForm.get('capacidadMaxima')?.errors?.['min']">Debe ser un número mayor o igual a 1.</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="estado">Estado</label>
+        <select id="estado" formControlName="estado">
+          <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+        </select>
+        <div *ngIf="laboratorioForm.get('estado')?.invalid && laboratorioForm.get('estado')?.touched" class="error-message">
+          <small>El estado es obligatorio.</small>
+        </div>
+      </div>
+
+      <div *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </div>
+
+      <div *ngIf="errorMessage" class="global-error">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="laboratorioForm.invalid || loading">
+        <span *ngIf="loading">Creando...</span>
+        <span *ngIf="!loading">Crear laboratorio</span>
+      </button>
+
+      <div class="auth-links">
+        <a routerLink="/labs">Volver a Laboratorios</a>
+      </div>
+    </form>
+  </div>
+</div>

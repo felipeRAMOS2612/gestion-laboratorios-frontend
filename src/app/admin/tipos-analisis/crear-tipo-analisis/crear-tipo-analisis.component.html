@@ -1,0 +1,66 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Crear Tipo de Análisis (ADMIN)</h2>
+
+    <p class="subtitle">Crea un tipo de análisis para asignaciones</p>
+
+    <form [formGroup]="tipoAnalisisForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="nombre">Nombre</label>
+      <input id="nombre" type="text" formControlName="nombre" placeholder="Hemograma" />
+      <div *ngIf="tipoAnalisisForm.get('nombre')?.invalid && tipoAnalisisForm.get('nombre')?.touched" class="error-message">
+        <small *ngIf="tipoAnalisisForm.get('nombre')?.errors?.['required']">El nombre es obligatorio.</small>
+        <small *ngIf="tipoAnalisisForm.get('nombre')?.errors?.['maxlength']">Máximo 100 caracteres.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="descripcion">Descripción (opcional)</label>
+      <input
+        id="descripcion"
+        type="text"
+        formControlName="descripcion"
+        placeholder="Examen de sangre completo"
+      />
+      <div *ngIf="tipoAnalisisForm.get('descripcion')?.invalid && tipoAnalisisForm.get('descripcion')?.touched" class="error-message">
+        <small *ngIf="tipoAnalisisForm.get('descripcion')?.errors?.['maxlength']">Máximo 500 caracteres.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="duracionEstimada">Duración estimada (minutos, opcional)</label>
+      <input id="duracionEstimada" type="number" formControlName="duracionEstimada" min="1" placeholder="30" />
+      <div *ngIf="tipoAnalisisForm.get('duracionEstimada')?.invalid && tipoAnalisisForm.get('duracionEstimada')?.touched" class="error-message">
+        <small *ngIf="tipoAnalisisForm.get('duracionEstimada')?.errors?.['min']">Debe ser un número mayor o igual a 1.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="costo">Costo (opcional)</label>
+      <input id="costo" type="number" formControlName="costo" min="0.01" step="0.01" placeholder="12000" />
+      <div *ngIf="tipoAnalisisForm.get('costo')?.invalid && tipoAnalisisForm.get('costo')?.touched" class="error-message">
+        <small *ngIf="tipoAnalisisForm.get('costo')?.errors?.['min']">Debe ser un número mayor a 0.</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="requisitos">Requisitos (opcional)</label>
+      <input id="requisitos" type="text" formControlName="requisitos" placeholder="Ayuno 8h" />
+      <div *ngIf="tipoAnalisisForm.get('requisitos')?.invalid && tipoAnalisisForm.get('requisitos')?.touched" class="error-message">
+        <small *ngIf="tipoAnalisisForm.get('requisitos')?.errors?.['maxlength']">Máximo 200 caracteres.</small>
+      </div>
+    </div>
+
+    <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="global-error">{{ errorMessage }}</div>
+
+    <button type="submit" class="btn-primary" [disabled]="tipoAnalisisForm.invalid || loading">
+      {{ loading ? 'Creando...' : 'Crear tipo de análisis' }}
+    </button>
+
+    <div class="auth-links">
+      <a routerLink="/labs">Volver a Laboratorios</a>
+    </div>
+    </form>
+  </div>
+</div>

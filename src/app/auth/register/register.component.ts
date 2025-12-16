@@ -1,8 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
+import { LaboratorioService } from '../../shared/services/laboratorio.service';
+import { Laboratorio } from '../../shared/models/laboratorio.model';
+import { forkJoin, map, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -17,23 +20,62 @@ export class RegisterComponent {
   loading: boolean = false;
   successMessage: string = '';
 
+  adminMode = false;
+  loadingLaboratorios = false;
+  laboratorios: Laboratorio[] = [];
+  selectedLaboratorioIds = new Set<number>();
+
   constructor(
     private fb: FormBuilder, 
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private laboratorioService: LaboratorioService,
+    private route: ActivatedRoute
   ) {
     this.registerForm = this.fb.group({
       username: ['', [Validators.required, Validators.minLength(3)]],
       nombre: ['', [Validators.required, Validators.minLength(2)]],
       apellido: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      tipoUsuario: ['PACIENTE', Validators.required], // Default role
+      tipoUsuario: ['PACIENTE', Validators.required], // Solo PACIENTE (médicos los crea un ADMIN)
       password: ['', [
         Validators.required,
         Validators.minLength(6)
       ]],
       confirmPassword: ['', Validators.required]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  ngOnInit(): void {
+    this.adminMode = this.route.snapshot.data?.['mode'] === 'admin-medico';
+
+    if (this.adminMode) {
+      this.registerForm.get('tipoUsuario')?.setValue('MEDICO');
+      this.registerForm.get('tipoUsuario')?.disable();
+      this.cargarLaboratorios();
+    }
+  }
+
+  private cargarLaboratorios(): void {
+    this.loadingLaboratorios = true;
+    this.laboratorioService.getLaboratorios().subscribe({
+      next: (labs) => {
+        this.laboratorios = labs ?? [];
+        this.loadingLaboratorios = false;
+      },
+      error: (err) => {
+        this.loadingLaboratorios = false;
+        this.errorMessage = err?.error?.message || 'No se pudieron cargar los laboratorios.';
+      }
+    });
+  }
+
+  toggleLaboratorio(labId: number, checked: boolean): void {
+    if (checked) {
+      this.selectedLaboratorioIds.add(labId);
+    } else {
+      this.selectedLaboratorioIds.delete(labId);
+    }
   }
 
   // Custom validator for password matching
@@ -49,20 +91,58 @@ export class RegisterComponent {
       this.errorMessage = '';
       this.successMessage = '';
 
-      const formData = { ...this.registerForm.value };
-      delete formData.confirmPassword; // No enviar confirmPassword al backend
+      const formData: any = { ...this.registerForm.getRawValue() };
+      delete formData.confirmPassword;
 
-      this.authService.register(formData).subscribe({
-        next: (response) => {
+      if (!this.adminMode) {
+        // Seguridad/consistencia: el endpoint público /register siempre debe ser PACIENTE.
+        formData.tipoUsuario = 'PACIENTE';
+        this.authService.register(formData).subscribe({
+          next: () => {
+            this.loading = false;
+            this.successMessage = 'Usuario registrado exitosamente. Puede iniciar sesión.';
+            setTimeout(() => {
+              this.router.navigate(['/auth/login']);
+            }, 1500);
+          },
+          error: (error) => {
+            this.loading = false;
+            this.errorMessage = error.error?.message || 'Error al registrar usuario. Intente nuevamente.';
+          }
+        });
+        return;
+      }
+
+      // ADMIN mode: crear médico y asignar laboratorios seleccionados
+      formData.tipoUsuario = 'MEDICO';
+
+      this.authService.createMedicoByAdmin(formData).pipe(
+        switchMap((medico) => {
+          const medicoId = medico?.id;
+          if (!medicoId) {
+            return of(medico);
+          }
+
+          const laboratorioIds = Array.from(this.selectedLaboratorioIds.values());
+          if (laboratorioIds.length === 0) {
+            return of(medico);
+          }
+
+          return forkJoin(
+            laboratorioIds.map((labId) => this.laboratorioService.asignarLaboratorioAMedico(medicoId, labId))
+          ).pipe(map(() => medico));
+        })
+      ).subscribe({
+        next: () => {
           this.loading = false;
-          this.successMessage = 'Usuario registrado exitosamente. Puede iniciar sesión.';
+          this.successMessage = 'Médico creado y laboratorios asignados.';
           setTimeout(() => {
-            this.router.navigate(['/auth/login']);
-          }, 2000);
+            this.router.navigate(['/dashboard']);
+          }, 1200);
         },
         error: (error) => {
           this.loading = false;
-          this.errorMessage = error.error?.message || 'Error al registrar usuario. Intente nuevamente.';
+          this.errorMessage = error.error?.message || 'Error al crear médico/asignar laboratorios.';
         }
       });
     } else {

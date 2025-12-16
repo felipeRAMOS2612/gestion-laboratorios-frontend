@@ -1,25 +1,30 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LaboratorioService } from '../shared/services/laboratorio.service';
 import { AuthService } from '../shared/services/auth.service';
 import { Laboratorio, TipoAnalisis, Asignacion, AsignacionRequest } from '../shared/models/laboratorio.model';
-import { NavbarComponent } from '../shared/components/navbar/navbar.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-lab-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, NavbarComponent],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './lab-list.component.html',
   styleUrl: './lab-list.component.css'
 })
 export class LabListComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+
   laboratorios: Laboratorio[] = [];
   tiposAnalisis: TipoAnalisis[] = [];
-  loading = false;
-  errorMessage = '';
-  successMessage = '';
+  loadingLabs = false;
+  loadingAssignment = false;
+  pageErrorMessage = '';
+  assignmentErrorMessage = '';
+  assignmentSuccessMessage = '';
   selectedLaboratorio: Laboratorio | null = null;
   showAssignmentModal = false;
   assignmentForm: FormGroup;
@@ -27,6 +32,7 @@ export class LabListComponent implements OnInit {
   constructor(
     private laboratorioService: LaboratorioService,
     private authService: AuthService,
+    private cdr: ChangeDetectorRef,
     private fb: FormBuilder
   ) {
     this.assignmentForm = this.fb.group({
@@ -36,28 +42,45 @@ export class LabListComponent implements OnInit {
     });
   }
 
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  isLaboratorioDisponible(lab: Laboratorio): boolean {
+    if (typeof lab.disponible === 'boolean') return lab.disponible;
+    if (typeof lab.activo === 'boolean') return lab.activo;
+    if (lab.estado) return lab.estado === 'DISPONIBLE';
+    return false;
+  }
+
+  getCapacidadLabel(lab: Laboratorio): string {
+    const capacidad = lab.capacidadMaxima ?? lab.capacidad;
+    return typeof capacidad === 'number' ? String(capacidad) : 'No definida';
+  }
+
   ngOnInit() {
     this.loadLaboratorios();
     this.loadTiposAnalisis();
   }
 
   loadLaboratorios() {
-    this.loading = true;
-    this.laboratorioService.getLaboratorios().subscribe({
+    this.loadingLabs = true;
+    this.pageErrorMessage = '';
+    this.laboratorioService.getLaboratorios().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (labs) => {
         this.laboratorios = labs;
-        this.loading = false;
+        this.loadingLabs = false;
       },
       error: (error) => {
-        this.errorMessage = 'Error al cargar laboratorios';
-        this.loading = false;
+        this.pageErrorMessage = 'Error al cargar laboratorios';
+        this.loadingLabs = false;
         console.error('Error loading labs:', error);
       }
     });
   }
 
   loadTiposAnalisis() {
-    this.laboratorioService.getTiposAnalisis().subscribe({
+    this.laboratorioService.getTiposAnalisis().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (tipos) => {
         this.tiposAnalisis = tipos;
       },
@@ -71,35 +94,39 @@ export class LabListComponent implements OnInit {
     this.selectedLaboratorio = laboratorio;
     this.showAssignmentModal = true;
     this.assignmentForm.reset();
+    this.assignmentErrorMessage = '';
+    this.assignmentSuccessMessage = '';
     
     // Set minimum date to tomorrow
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const minDate = tomorrow.toISOString().slice(0, 16);
     
-    const dateInput = document.getElementById('fechaHoraInicio') as HTMLInputElement;
-    if (dateInput) {
-      dateInput.min = minDate;
-    }
+    // Espera al render del modal antes de buscar el input
+    setTimeout(() => {
+      const dateInput = document.getElementById('fechaHoraInicio') as HTMLInputElement | null;
+      if (dateInput) dateInput.min = minDate;
+    }, 0);
   }
 
   closeAssignmentModal() {
     this.showAssignmentModal = false;
     this.selectedLaboratorio = null;
     this.assignmentForm.reset();
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.assignmentErrorMessage = '';
+    this.assignmentSuccessMessage = '';
   }
 
   submitAssignment() {
     if (this.assignmentForm.valid && this.selectedLaboratorio) {
-      this.loading = true;
-      this.errorMessage = '';
+      this.loadingAssignment = true;
+      this.assignmentErrorMessage = '';
+      this.assignmentSuccessMessage = '';
 
       const currentUser = this.authService.getCurrentUser();
       if (!currentUser) {
-        this.errorMessage = 'Usuario no autenticado';
-        this.loading = false;
+        this.assignmentErrorMessage = 'Usuario no autenticado';
+        this.loadingAssignment = false;
         return;
       }
 
@@ -111,17 +138,23 @@ export class LabListComponent implements OnInit {
         observaciones: this.assignmentForm.value.observaciones
       };
 
-      this.laboratorioService.crearAsignacion(assignmentData).subscribe({
+      this.laboratorioService
+        .crearAsignacion(assignmentData)
+        .pipe(
+          takeUntilDestroyed(this.destroyRef),
+          finalize(() => {
+            this.loadingAssignment = false;
+          })
+        )
+        .subscribe({
         next: (response) => {
-          this.loading = false;
-          this.successMessage = 'Asignación creada exitosamente';
+          this.assignmentSuccessMessage = 'Asignación creada exitosamente';
           setTimeout(() => {
             this.closeAssignmentModal();
           }, 2000);
         },
         error: (error) => {
-          this.loading = false;
-          this.errorMessage = error.error?.message || 'Error al crear la asignación';
+          this.assignmentErrorMessage = error.error?.message || 'Error al crear la asignación';
         }
       });
     }

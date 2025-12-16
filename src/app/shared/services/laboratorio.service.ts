@@ -17,6 +17,10 @@ export class LaboratorioService {
     return this.http.get<Laboratorio[]>(`${this.API_URL}/laboratorios`);
   }
 
+  crearLaboratorio(payload: Partial<Laboratorio>): Observable<Laboratorio> {
+    return this.http.post<Laboratorio>(`${this.API_URL}/laboratorios`, payload);
+  }
+
   getLaboratoriosDisponibles(): Observable<Laboratorio[]> {
     return this.http.get<Laboratorio[]>(`${this.API_URL}/laboratorios/disponibles`);
   }
@@ -28,6 +32,10 @@ export class LaboratorioService {
   // Tipos de análisis
   getTiposAnalisis(): Observable<TipoAnalisis[]> {
     return this.http.get<TipoAnalisis[]>(`${this.API_URL}/tipos-analisis`);
+  }
+
+  crearTipoAnalisis(payload: Partial<TipoAnalisis>): Observable<TipoAnalisis> {
+    return this.http.post<TipoAnalisis>(`${this.API_URL}/tipos-analisis`, payload);
   }
 
   getTiposAnalisisActivos(): Observable<TipoAnalisis[]> {
@@ -77,5 +85,18 @@ export class LaboratorioService {
 
   completarAnalisis(id: number): Observable<void> {
     return this.http.patch<void>(`${this.API_URL}/asignaciones/${id}/completar`, {});
+  }
+
+  // ADMIN: asignación médico <-> laboratorio
+  asignarLaboratorioAMedico(medicoId: number, laboratorioId: number): Observable<void> {
+    return this.http.post<void>(`${this.API_URL}/medicos/${medicoId}/laboratorios/${laboratorioId}`, {});
+  }
+
+  desasignarLaboratorioDeMedico(medicoId: number, laboratorioId: number): Observable<void> {
+    return this.http.delete<void>(`${this.API_URL}/medicos/${medicoId}/laboratorios/${laboratorioId}`);
+  }
+
+  getLaboratoriosDeMedico(medicoId: number): Observable<Laboratorio[]> {
+    return this.http.get<Laboratorio[]>(`${this.API_URL}/medicos/${medicoId}/laboratorios`);
   }
 }

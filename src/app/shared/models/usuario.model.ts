@@ -4,7 +4,7 @@ export interface Usuario {
   email: string;
   nombre: string;
   apellido?: string;
-  tipoUsuario: 'MEDICO' | 'PACIENTE';
+  tipoUsuario: 'MEDICO' | 'PACIENTE' | 'ADMIN';
   activo?: boolean;
   telefono?: string;
   direccion?: string;
